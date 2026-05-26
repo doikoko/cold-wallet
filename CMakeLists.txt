@@ -13,7 +13,7 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-set(CMAKE_PROJECT_NAME coldWallet_C)
+set(CMAKE_PROJECT_NAME coldWallet)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
