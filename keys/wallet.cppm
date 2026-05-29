@@ -12,7 +12,6 @@ module;
 
 export module wallet;
 
-
 export class Wallet{
     TWHDWallet* wallet_ptr = nullptr;
 

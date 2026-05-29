@@ -10,7 +10,7 @@ int main() {
         Wallet wallet;
         wallet.generate();
 
-        std::string command = std::format(
+        std::string const command = std::format(
             "STM32_Programmer_CLI -c port=usb1 \
             -otp write word=0 fvalue={}{}{}",
             wallet.address_str, 
@@ -19,7 +19,7 @@ int main() {
         );
 
         if (std::system(command.data())){
-            std::println(stderr, "error occured");
+            std::println(stderr, "error occurred");
             return 1;
         }
     } catch (const std::exception& e) {
