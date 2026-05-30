@@ -1,26 +1,32 @@
 #include <iostream>
 #include <print>
 #include <memory>
-
-#include <asio/awaitable.hpp>
-#include <asio/co_spawn.hpp>
-#include <asio/detached.hpp>
+#include <asio/io_context.hpp>
 
 import serial;
+import input_manager;
+import logger;
 
-asio::awaitable<int> async_main() {
+int main() {
     std::println("input serial port\ne.g. '/dev/ttyUSB0");
+
+    Logger::instance("main", "../../logger.log");
 
     std::string port_name;
     std::getline(std::cin, port_name);
 
-    std::unique_ptr serial(co_await Serial::open(std::move(port_name)));
-    co_return 1;
-}
+    Serial serial(asio::io_context{}, std::move(port_name));
 
-int main() {
-    asio::io_context io_ctx;
+    std::println("to choose an action enter the corresponding number\n"
+        "e.g. '1' to show this menu.\n"
+        "available functions:\n"
+        "1) show this menu\n"
+        "2) check current balance\n"
+        "3) send transaction\n"
+        "4) exit"
+    );
 
-    asio::co_spawn(io_ctx, async_main(), asio::detached);
-    io_ctx.run();
+    InputManager::inf_loop_init();
+
+    return 0;
 }

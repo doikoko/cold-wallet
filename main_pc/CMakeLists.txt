@@ -25,8 +25,15 @@ FetchContent_MakeAvailable(asio)
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE
-    FILE_SET CXX_MODULES FILES
+    FILE_SET CXX_MODULES
+    BASE_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/../logger
+    FILES
     serial.cppm
+    BEP20.cppm
+    input_manager.cppm
+    ${CMAKE_CURRENT_SOURCE_DIR}/../logger/logger.cppm
 )
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ${asio_SOURCE_DIR}/asio/include

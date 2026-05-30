@@ -3,3 +3,5 @@ wallet-core
 .idea
 *.pdf
 cmake-build*
+*.json
+/logs.log
