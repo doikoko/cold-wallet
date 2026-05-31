@@ -19,13 +19,13 @@ export class Logger {
 
     Logger(std::string process_name, std::string const& filename) :
         process_name(std::move(process_name)),
-        stream(filename, std::ios::app) {std::println("debug");}
+        stream(filename, std::ios::app) {}
 
     ~Logger() {
         stream.close();
     }
 
-    std::string get_time() {
+    std::string get_time() const {
         auto const now = std::chrono::system_clock::now();
         auto const now_seconds = std::chrono::floor<std::chrono::seconds>(now);
 
@@ -61,12 +61,16 @@ public:
                 break;
         }
 
-        stream << std::format(
+        std::string res_text = std::format(
             "{} | {} | {} | {}\n",
             get_time(),
             process_name,
             log_type,
             std::move(text)
         );
+
+        std::print("{}", res_text);
+
+        stream << res_text;
     }
 };

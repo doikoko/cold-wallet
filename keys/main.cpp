@@ -11,17 +11,15 @@ int main() {
         wallet.generate();
 
         std::string const command = std::format(
-            "STM32_Programmer_CLI -c port=usb1 \
-            -otp write word=0 fvalue={}{}{}",
+            "STM32_Programmer_CLI -c port=usb1"
+            "-otp write word=0 fvalue={}{}{}",
             wallet.address_str, 
             wallet.private_key_hex,
             wallet.mnemonic_str
         );
 
-        if (std::system(command.data())){
-            std::println(stderr, "error occurred");
-            return 1;
-        }
+        if (std::system(command.data()))
+            throw std::exception();
     } catch (const std::exception& e) {
         std::println(stderr, "error: {}", e.what());
         return 1;
