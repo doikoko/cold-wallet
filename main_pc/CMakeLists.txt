@@ -40,16 +40,21 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     serial.cppm
     BEP20.cppm
     input_manager.cppm
+    test.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../logger/logger.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../commands/commands.cppm
 )
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ${asio_SOURCE_DIR}/asio/include
         ${nlohmann_json_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/include
 )
 
 find_package(Threads REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libTrustWalletCore.a"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libTrezorCrypto.a"
+        "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libprotobuf.a"
         Threads::Threads
         nlohmann_json::nlohmann_json
 )

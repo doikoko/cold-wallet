@@ -5,3 +5,5 @@ wallet-core
 cmake-build*
 *.json
 /logs.log
+test*
+*.sh

@@ -29,6 +29,12 @@ export class Serial {
         }
     }
 
+    void send_command(Commands command) {
+        sync();
+
+        asio::mutable_buffer const buf = asio::buffer(&command, 1);
+        port.write_some(buf);
+    }
 public:
     Serial(asio::io_context& context, std::string port_name) :
         port(context)
@@ -52,10 +58,13 @@ public:
         char addr_raw[42] = {};
         asio::mutable_buffer const addr = asio::buffer(addr_raw, 42);
 
-        sync();
-        port.read_some(addr);
+        send_command(Commands::GET_ADDR);
 
         return addr_raw;
+    }
+
+    void show_address_mcu() {
+        send_command(Commands::SHOW_ADDR);
     }
 };
 

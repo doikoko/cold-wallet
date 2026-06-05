@@ -31,8 +31,9 @@ target_compile_features(${CMAKE_PROJECT_NAME} PRIVATE cxx_std_23)
 
 target_sources(${CMAKE_PROJECT_NAME} PUBLIC
         FILE_SET CXX_MODULES FILES
-        Drivers/display/HAL_Delay_us.cppm
         Drivers/display/display.cppm
+        Drivers/display/HAL_Delay_us.cppm
+        logger/logger_mcu.cppm
 )
 
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)

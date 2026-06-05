@@ -26,13 +26,13 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
 )
 
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/wallet-core/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/include"
 )
 
 target_link_libraries(keys PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/wallet-core/build/libTrustWalletCore.a"
-    "${CMAKE_CURRENT_SOURCE_DIR}/wallet-core/build/libTrezorCrypto.a"
-    "${CMAKE_CURRENT_SOURCE_DIR}/wallet-core/build/libprotobuf.a"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libTrustWalletCore.a"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libTrezorCrypto.a"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libprotobuf.a"
     OpenSSL::Crypto
     c++
     c++abi

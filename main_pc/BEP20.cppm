@@ -7,11 +7,19 @@ module;
 #include <asio/connect.hpp>
 #include <nlohmann/json.hpp>
 
+#include <TWAnySigner.h>
+
 export module BEP20;
 
 import logger;
 
 using json = nlohmann::json;
+
+constexpr double WEI_IN_TOKEN = 1'000'000'000'000'000'000.0;
+
+export enum class SupportedTokens{
+    BNB, USDC
+};
 
 typedef struct {
     std::string_view host;
@@ -62,12 +70,12 @@ export class BEP20 {
         size_t content_length = 0;
         size_t pos = response.find("Content-Length: ");
         if (pos != std::string::npos) {
-            pos += 16; // "Content-Length: " lenth
+            pos += 16; // "Content-Length: " length
             size_t const end = response.find("\r\n", pos);
             content_length = std::stoul(response.substr(pos, end - pos));
         }
 
-        size_t header_end = response.find("\r\n\r\n") + 4;
+        size_t const header_end = response.find("\r\n\r\n") + 4;
         std::string body = response.substr(header_end);
 
         while (body.length() < content_length) {
@@ -83,7 +91,7 @@ export class BEP20 {
     double hex_string_to_double(const std::string& hex) {
         double result = 0.0;
 
-        for (char c : hex) {
+        for (char const c : hex) {
             result *= 16.0;
 
             if (c >= '0' && c <= '9') {
@@ -121,8 +129,6 @@ export class BEP20 {
         hex_balance = hex_balance.substr(first_non_zero);
 
         double const value = hex_string_to_double(hex_balance);
-
-        constexpr double WEI_IN_TOKEN = 1'000'000'000'000'000'000.0;
 
         return value / WEI_IN_TOKEN;
     }
@@ -173,4 +179,6 @@ public:
     std::string get_address_cached() {
         return address;
     }
+
+    void send_transaction(){}
 };
