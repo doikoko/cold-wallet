@@ -6,7 +6,7 @@ module;
 #include <chrono>
 #include <format>
 
-export module logger;
+export module logger_pc;
 
 export enum class LogType {
     Info,

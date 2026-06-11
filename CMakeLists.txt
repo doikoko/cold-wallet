@@ -33,7 +33,10 @@ target_sources(${CMAKE_PROJECT_NAME} PUBLIC
         FILE_SET CXX_MODULES FILES
         Drivers/display/display.cppm
         Drivers/display/HAL_Delay_us.cppm
-        logger/logger_mcu.cppm
+        Drivers/usart/uart.cppm
+        utils/logger_mcu.cppm
+        utils/result.cppm
+        utils/commands.cppm
 )
 
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)

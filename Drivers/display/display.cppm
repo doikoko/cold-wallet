@@ -88,7 +88,6 @@ export class Display {
         HAL_Delay_us(10);
     }
 
-
     void expander_write(uint8_t const value) const {
         uint8_t data = value | back_light_val;
         HAL_StatusTypeDef stat =  HAL_I2C_Master_Transmit(&hi2c1, addr, &data, 1, 100);

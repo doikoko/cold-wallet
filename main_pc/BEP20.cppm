@@ -11,7 +11,7 @@ module;
 
 export module BEP20;
 
-import logger;
+import logger_pc;
 
 using json = nlohmann::json;
 

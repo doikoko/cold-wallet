@@ -5,35 +5,50 @@ module;
 #include <asio/serial_port_base.hpp>
 #include <asio/serial_port.hpp>
 #include <asio/buffer.hpp>
+#include <asio/read.hpp>
+#include <asio/write.hpp>
 
 export module serial;
 
 import commands;
+import result;
 
+constexpr uint8_t len_msg_size = 6;
 export class Serial {
     asio::serial_port port;
 
     void sync() {
-        uint8_t read_data = 0;
-        asio::mutable_buffer const read_buf = asio::buffer(&read_data, 1);
+        uint8_t data = 0;
 
-        uint8_t sync_pc_raw = static_cast<uint8_t>(Commands::SYNC_PC);
-        asio::mutable_buffer const sync_pc = asio::buffer(&sync_pc_raw, 1);
-
-        while (
-            *static_cast<uint8_t*>(read_buf.data()) !=
-            static_cast<uint8_t>(Commands::SYNC_MCU))
-        {
-            port.write_some(sync_pc);
-            port.read_some(read_buf);
+        while (data != command_sync_mcu){
+            asio::write(port, asio::buffer(&command_sync_pc, 1));
+            asio::read(port, asio::buffer(&data, 1));
         }
     }
 
-    void send_command(Commands command) {
-        sync();
+    [[nodiscard]] Result check_res() {
+        uint8_t data = 0;
 
-        asio::mutable_buffer const buf = asio::buffer(&command, 1);
-        port.write_some(buf);
+        Result result;
+
+        asio::read(port, asio::buffer(&data, 1));
+        if (data == command_ok)
+            result = Result::Ok;
+        else
+            result = Result::Err;
+
+        asio::write(port, asio::buffer(&command_sync_pc, 1));
+        return result;
+    }
+
+    void send_res(Result const res) {
+        uint8_t data = 0;
+        uint8_t const result = res == Result::Ok ? command_ok : command_err;
+
+        while (data != command_sync_mcu) {
+            asio::write(port, asio::buffer(&result, 1));
+            asio::read(port, asio::buffer(&data, 1));
+        }
     }
 public:
     Serial(asio::io_context& context, std::string port_name) :
@@ -54,17 +69,101 @@ public:
         port.set_option(ser_base::stop_bits(ser_base::stop_bits::one));
     }
 
+    [[nodiscard]] Result send(std::span<const char> const msg) {
+        // 1 start byte | 4 data bytes | 1 end byte
+        uint8_t len_msg[len_msg_size];
+        len_msg[0] = command_start_byte;
+        uint32_t const msg_size = static_cast<uint32_t>(msg.size());
+
+        std::memcpy(len_msg + 1, &msg_size, 4);
+        len_msg[5] = command_end_byte;
+
+        uint32_t const data_msg_size = msg_size + 2;
+        uint8_t data_msg[data_msg_size];
+
+        // 1 start byte | data | 1 end byte
+        data_msg[0] = command_start_byte;
+        std::memcpy(data_msg + 1, msg.data(), msg.size());
+        data_msg[data_msg_size - 1] = command_end_byte;
+
+        uint8_t attempts = 0;
+
+        sync();
+        do {
+            asio::write(port, asio::buffer(len_msg, len_msg_size));
+
+            if (++attempts >= 3)
+                return Result::Err;
+
+        } while(check_res() != Result::Ok);
+
+        attempts = 0;
+
+        sync();
+        do {
+            asio::write(port, asio::buffer(data_msg, data_msg_size));
+
+            if (++attempts >= 3)
+                return Result::Err;
+        } while (check_res() != Result::Ok);
+
+        return Result::Ok;
+    }
+
+    [[nodiscard]] std::optional<std::vector<char>> receive() {
+        uint8_t len_msg[len_msg_size] = {};
+        uint8_t attempts = 0;
+
+        sync();
+        while (true) {
+            asio::read(port, asio::buffer(len_msg, len_msg_size));
+
+            if (++attempts >= 3)
+                return std::nullopt;
+            if (len_msg[0] == command_start_byte && len_msg[len_msg_size - 1] == command_end_byte) {
+                send_res(Result::Ok);
+                break;
+            }
+            else
+                send_res(Result::Err);
+        }
+        uint32_t msg_size;
+        std::memcpy(&msg_size, len_msg + 1, 4);
+
+        std::vector<char> msg;
+        msg.reserve(msg_size);
+
+        uint8_t buf[msg_size + 2];
+        attempts = 0;
+
+        sync();
+        while (true) {
+            asio::read(port, asio::buffer(buf, msg_size + 2));
+            if (++attempts >= 3)
+                return std::nullopt;
+            if (buf[0] == command_start_byte && buf[msg_size + 1] == command_end_byte) {
+                send_res(Result::Ok);
+                break;
+            }
+            else
+                send_res(Result::Err);
+        }
+
+        std::memcpy(msg.data(), buf + 1, msg_size);
+        return msg;
+    }
+
     std::string get_address_from_mcu() {
         char addr_raw[42] = {};
         asio::mutable_buffer const addr = asio::buffer(addr_raw, 42);
 
-        send_command(Commands::GET_ADDR);
+        //send_command(Commands::GET_ADDR);
 
         return addr_raw;
     }
 
     void show_address_mcu() {
-        send_command(Commands::SHOW_ADDR);
+        //send_command(Commands::SHOW_ADDR);
     }
 };
 

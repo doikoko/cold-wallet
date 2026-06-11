@@ -34,15 +34,14 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     FILE_SET CXX_MODULES
     BASE_DIRS
         ${CMAKE_CURRENT_SOURCE_DIR}
-        ${CMAKE_CURRENT_SOURCE_DIR}/../logger
-        ${CMAKE_CURRENT_SOURCE_DIR}/../commands
+        ${CMAKE_CURRENT_SOURCE_DIR}/../utils
     FILES
     serial.cppm
     BEP20.cppm
     input_manager.cppm
-    test.cppm
-    ${CMAKE_CURRENT_SOURCE_DIR}/../logger/logger.cppm
-    ${CMAKE_CURRENT_SOURCE_DIR}/../commands/commands.cppm
+    ${CMAKE_CURRENT_SOURCE_DIR}/../utils/logger_pc.cppm
+    ${CMAKE_CURRENT_SOURCE_DIR}/../utils/commands.cppm
+    ${CMAKE_CURRENT_SOURCE_DIR}/../utils/result.cppm
 )
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
         ${asio_SOURCE_DIR}/asio/include

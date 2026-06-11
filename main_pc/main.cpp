@@ -5,8 +5,9 @@
 
 import serial;
 import input_manager;
-import logger;
+import logger_pc;
 import BEP20;
+import result;
 
 int main() {
     std::println("input serial port\ne.g. '/dev/ttyUSB0");
@@ -27,6 +28,7 @@ int main() {
         BEP20 bep20(ctx, std::move(address));
 
         InputManager manager(std::move(serial), std::move(bep20));
+
         manager.show_menu();
         manager.inf_loop_init();
     } catch (std::system_error const& e) {
