@@ -13,18 +13,10 @@ module;
 export module wallet;
 
 export class Wallet{
-    TWHDWallet* wallet_ptr = nullptr;
-
 public:
     std::string mnemonic_str{};
     std::string private_key_hex{};
     std::string address_str{};
-
-    ~Wallet(){
-        if (wallet_ptr) {
-            TWHDWalletDelete(wallet_ptr);
-        }
-    }
 
     void generate(){
         std::println("start generation keys");
@@ -33,7 +25,6 @@ public:
         if (!wallet) {
             throw std::runtime_error("failed to generate HD Wallet");
         }
-        wallet_ptr = wallet;
 
         TWString* tw_mnemonic = TWHDWalletMnemonic(wallet);
         mnemonic_str = TWStringUTF8Bytes(tw_mnemonic);
@@ -51,6 +42,7 @@ public:
         address_str = TWStringUTF8Bytes(tw_address);
         TWStringDelete(tw_address);
 
+        TWHDWalletDelete(wallet);
         TWPrivateKeyDelete(private_key);
     }
 };

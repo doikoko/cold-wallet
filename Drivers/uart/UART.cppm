@@ -13,7 +13,7 @@ import logger_mcu;
 
 
 constexpr uint8_t len_msg_size = 6;
-export class uart {
+export class UART {
     UART_HandleTypeDef& huart1;
 
     void sync() const {
@@ -22,7 +22,9 @@ export class uart {
         while (data != command_sync_pc) {
             HAL_UART_Receive(&huart1, &data, 1, 100);
         }
-        HAL_UART_Transmit(&huart1, &command_sync_mcu, 1, 100);
+        constexpr uint8_t command = static_cast<uint8_t>(command_sync_mcu);
+
+        HAL_UART_Transmit(&huart1, &command, 1, 100);
     }
 
     [[nodiscard]] Result test() const {
@@ -36,7 +38,9 @@ export class uart {
         else
             result = Result::Err;
 
-        HAL_UART_Transmit(&huart1, &command_sync_mcu, 1, 100);
+        constexpr uint8_t command = static_cast<uint8_t>(command_sync_mcu);
+
+        HAL_UART_Transmit(&huart1, &command, 1, 100);
         return result;
     }
 
@@ -50,8 +54,7 @@ export class uart {
     }
 
 public:
-    uart() = delete;
-    uart(UART_HandleTypeDef& huart1) : huart1(huart1){}
+    UART(UART_HandleTypeDef& huart1) : huart1(huart1){}
 
     [[nodiscard]] Result send(std::span<const char> const msg) const {
         // 1 start byte | 4 data bytes | 1 end byte
@@ -118,7 +121,7 @@ public:
         return len_msg;
     }
 
-    [[nodiscard]] Result recieve(std::span<char> buf) const {
+    [[nodiscard]] Result receive(std::span<char> buf) const {
         uint8_t attempts = 0;
 
         uint32_t msg_size = static_cast<uint32_t>(buf.size()) + 2;
@@ -141,5 +144,27 @@ public:
         std::memcpy(buf.data(), msg + 1, msg_size - 1);
 
         return Result::Ok;
+    }
+
+    [[nodiscard]] std::optional<char> receive_command() const {
+        uint32_t len = receive_len().value();
+
+        if (len != 1)
+            return std::nullopt;
+
+        char command;
+        Result res = receive(std::span(&command, len));
+
+        if (res == Result::Err || command < 0x47 || command > 0x4F)
+            return std::nullopt;
+
+        return command;
+    }
+
+    [[nodiscard]] Result send_command(char const command) const {
+        if (command < 0x47 || command > 0x4F)
+            return Result::Err;
+
+        return send(std::span(&command, 1));
     }
 };
