@@ -153,17 +153,52 @@ public:
         return msg;
     }
 
-    std::string get_address_from_mcu() {
-        char addr_raw[42] = {};
-        asio::mutable_buffer const addr = asio::buffer(addr_raw, 42);
+    [[nodiscard]] Result send_command(char const command) {
+        if (command < 0x47 || command > 0x4F)
+            return Result::Err;
 
-        //send_command(Commands::GET_ADDR);
-
-        return addr_raw;
+        return send(std::span(&command, 1));
     }
 
-    void show_address_mcu() {
-        //send_command(Commands::SHOW_ADDR);
+    [[nodiscard]] std::optional<char> receive_command() {
+        std::optional const res = receive();
+
+        if (!res.has_value())
+            return std::nullopt;
+
+        char const command = res.value()[0];
+
+        if (command < 0x47 || command > 0x4F)
+            return std::nullopt;
+
+        return command;
+    }
+
+    [[nodiscard]] std::optional<std::vector<char>> get_address_from_mcu() {
+        if (send_command(command_get_addr) == Result::Err)
+            return std::nullopt;
+
+        std::optional const opt_addr = receive();
+        if (!opt_addr)
+            return std::nullopt;
+
+        std::vector<char> const& addr = opt_addr.value();
+
+        return addr;
+    }
+
+    [[nodiscard]] Result show_address_mcu() {
+        if (send_command(command_show_addr) == Result::Err)
+            return Result::Err;
+
+        std::optional const command = receive_command();
+        if (!command.has_value())
+            return Result::Err;
+
+        if (command.value() != command_finish)
+            return Result::Err;
+
+        return Result::Ok;
     }
 };
 
