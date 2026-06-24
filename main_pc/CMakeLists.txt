@@ -26,6 +26,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/nlohmann/json.git
     GIT_TAG        v3.12.0
 )
+
 FetchContent_MakeAvailable(asio nlohmann_json)
 
 add_executable(${CMAKE_PROJECT_NAME} main.cpp)
@@ -41,24 +42,21 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     input_manager.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../utils/logger_pc.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../utils/commands.cppm
+    ${CMAKE_CURRENT_SOURCE_DIR}/../utils/transaction.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../utils/result.cppm
 )
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-        ${asio_SOURCE_DIR}/asio/include
-        ${nlohmann_json_SOURCE_DIR}/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/include
+    ${asio_SOURCE_DIR}/asio/include
+    ${nlohmann_json_SOURCE_DIR}/include
 )
 
 find_package(Threads REQUIRED)
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libTrustWalletCore.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libTrezorCrypto.a"
-        "${CMAKE_CURRENT_SOURCE_DIR}/../wallet-core/build/libprotobuf.a"
-        Threads::Threads
-        nlohmann_json::nlohmann_json
+    Threads::Threads
+    nlohmann_json::nlohmann_json
 )
 
 target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-        ASIO_STANDALONE
-        PROJECT_WORKING_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+    ASIO_STANDALONE
+    PROJECT_WORKING_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
 )

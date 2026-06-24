@@ -1,21 +1,20 @@
 module;
 
+#include <asio/connect.hpp>
+
 #include <iostream>
 #include <string>
 #include <print>
 
 export module input_manager;
 
-import serial;
 import BEP20;
+import result;
 
-export class InputManager {
-    Serial serial;
-    BEP20 bep20;
+export class InputManager : private BEP20{
 public:
-    explicit InputManager(Serial serial, BEP20 bep20) :
-        serial(std::move(serial)),
-        bep20(std::move(bep20)){}
+    explicit InputManager(asio::io_context& context, std::string const& port_name) :
+        BEP20(context, port_name){}
 
     void show_menu() const {
         std::println("to choose an action enter the corresponding number\n"
@@ -29,7 +28,7 @@ public:
         );
     }
 
-    void inf_loop_init() {
+    Result inf_loop_init() {
         std::string user_input;
 
         while (user_input != "5") {
@@ -38,7 +37,7 @@ public:
                 show_menu();
             }
             else if (user_input == "2") {
-                Balance const balance = bep20.get_balance();
+                Balance const balance = get_balance();
                 std::println("bnb: {}\nusdc: {}", balance.bnb, balance.usdc);
                 show_menu();
             }
@@ -89,18 +88,19 @@ public:
                         std::println("invalid format, try again");
                     }
 
-                    bep20.send_transaction();
+                    send_transaction(to, token, amount);
                 }
 
                 show_menu();
             }
             else if (user_input == "4") {
-                std::println("address: {}", bep20.get_address_cached());
+                std::println("address: {}", get_address_cached());
                 std::println("check address on display");
 
-                serial.show_address_mcu();
+                Result const res = show_address_mcu();
 
                 show_menu();
+                if (res == Result::Err) return Result::Err;
             }
             else continue;
         }

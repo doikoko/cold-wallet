@@ -12,12 +12,12 @@ constexpr uint8_t max_word_len = 9; // with '\0'
 constexpr uint8_t mnemonic_len = max_word_len * mnemonic_words + 1; // with '\0'
 
 export class Keys {
+public:
     char addr[addr_len]{};
     char private_key[pr_key_len]{};
     char mnemonic[mnemonic_words][max_word_len]{{'\0'}};
     bool _is_first_run;
 
-public:
     Keys() {
         char const* otp_base = reinterpret_cast<char*>(0x1F'FF'78'00);
 

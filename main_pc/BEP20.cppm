@@ -1,17 +1,19 @@
 module;
 
 #include <string>
-#include <print>
+#include <format>
 
 #include <asio/ip/tcp.hpp>
 #include <asio/connect.hpp>
 #include <nlohmann/json.hpp>
 
-#include <TWAnySigner.h>
-
 export module BEP20;
 
 import logger_pc;
+import serial;
+import transaction;
+import commands;
+import result;
 
 using json = nlohmann::json;
 
@@ -36,12 +38,12 @@ export typedef struct {
     double usdc;
 } Balance;
 
-export class BEP20 {
+export class BEP20 : public Serial {
     asio::ip::tcp::socket socket;
     asio::ip::tcp::resolver resolver;
     std::string address;
 
-    json get_request(json const& request) {
+    json post_request(json const& request) {
         auto const endpoint = resolver.resolve(bsc_mainnet.host, "80");
         asio::connect(socket, endpoint);
 
@@ -132,14 +134,77 @@ export class BEP20 {
 
         return value / WEI_IN_TOKEN;
     }
+
+    std::string build_raw_transaction(uint64_t nonce, const std::string& gas_price,
+                                 const std::string& gas_limit, const std::string& to,
+                                 const std::string& value, const std::string& data,
+                                 uint64_t chain_id) {
+        return "";
+    }
+
+    std::string sign_transaction(const std::string& raw_tx, const std::string& private_key) {
+        return "";
+    }
+
+
+    uint64_t eth_getTransactionCount() {
+        json nonce_request;
+        nonce_request["jsonrpc"] = "2.0";
+        nonce_request["method"] = "eth_getTransactionCount";
+        nonce_request["params"] = json::array({address, "pending"});
+        nonce_request["id"] = 1;
+
+        json nonce_response = post_request(nonce_request);
+        return std::stoull(nonce_response["result"].get<std::string>(), nullptr, 16);
+    }
+
+    std::string&& eth_gasPrice() {
+        json gas_price_request;
+        gas_price_request["jsonrpc"] = "2.0";
+        gas_price_request["method"] = "eth_gasPrice";
+        gas_price_request["params"] = json::array();
+        gas_price_request["id"] = 1;
+
+        json gas_price_response = post_request(gas_price_request);
+        return gas_price_response["result"].get<std::string>();
+    }
+
+    std::string&& eth_estimateGas(
+        std::string const& to_address,
+        std::optional<std::string> const& data,
+        std::string const& wei_amount
+    ) {
+        json estimate_gas_request;
+        estimate_gas_request["jsonrpc"] = "2.0";
+        estimate_gas_request["method"] = "eth_estimateGas";
+        estimate_gas_request["params"] = json::array({json::object({
+            {"from", address},
+            {"to", to_address},
+            {"value", wei_amount}
+        })});
+        estimate_gas_request["id"] = 1;
+
+        if (data.has_value())
+            estimate_gas_request["params"]["data"] = data;
+
+        json estimate_gas_response = post_request(estimate_gas_request);
+        return estimate_gas_response["result"].get<std::string>();
+    }
 public:
-    explicit BEP20(asio::io_context& context, std::string address) :
+    explicit BEP20(asio::io_context& context, std::string const& port_name) :
+        Serial(context, port_name),
         socket(context),
-        resolver(context),
-        address(std::move(address)) {}
+        resolver(context)
+    {
+        std::optional res = get_address_from_mcu();
+        if (!res.has_value())
+            throw std::runtime_error("error receiving addr from mcu");
+
+        address = res.value();
+    }
 
     [[nodiscard]] Balance get_balance() {
-        json const response_bnb = get_request(json{
+        json const response_bnb = post_request(json{
             {"jsonrpc", "2.0"},
             {"method", "eth_getBalance"},
             {"params", {address, "latest"}},
@@ -168,7 +233,7 @@ public:
         });
         request_usdc["id"] = 1;
 
-        json const response_usdc = get_request(request_usdc);
+        json const response_usdc = post_request(request_usdc);
 
         return Balance{
             .bnb = response_to_double(response_bnb),
@@ -180,5 +245,66 @@ public:
         return address;
     }
 
-    void send_transaction(){}
+    void send_transaction(
+        std::string const& to_addr,
+        SupportedTokens const token,
+        double const amount
+    ) {
+        uint64_t const wei = static_cast<uint64_t>(amount * WEI_IN_TOKEN);
+        std::string const wei_amount = std::format("{:#x}", wei);
+
+        uint64_t nonce = eth_getTransactionCount();
+        std::string gas_price = eth_gasPrice();
+
+        std::string to_address;
+        std::optional<std::string> data = std::nullopt;
+        std::string value = "0x0";
+
+        if (token == SupportedTokens::BNB) {
+            to_address = to_addr;
+        } else if (token == SupportedTokens::USDC) {
+            constexpr std::string_view USDC_CONTRACT = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d";
+            to_address = USDC_CONTRACT;
+
+            constexpr std::string_view signature = "0xa9059cbb";
+
+            std::string clean_to = to_addr;
+            if (clean_to.starts_with("0x")) {
+                clean_to = clean_to.substr(2);
+            }
+
+            data = signature +
+               std::string(64 - clean_to.length(), '0') + clean_to +
+               std::string(
+                   64 - wei_amount.length() - 2, // without 0x
+                   '0'
+                ) + wei_amount.substr(2);
+        }
+
+        std::string const estimated_gas = eth_estimateGas(to_address, data, wei_amount);
+
+        Transaction transaction(
+            nonce,
+            gas_price,
+            estimated_gas,
+            to_address,
+            value,
+            data
+        );
+
+        std::string transaction_str = transaction.to_str();
+
+        if (send_command(command_sign_transaction) == Result::Err)
+            throw std::runtime_error("the signing transaction failed while sending the command");
+
+        if (send(std::span(transaction_str.data(), transaction_str.length())) ==
+            Result::Err)
+            throw std::runtime_error("the signing transaction failed while sending data");
+
+        std::optional<std::vector<char>> const resp = receive();
+        if (!resp.has_value())
+            throw std::runtime_error("the signing transaction failed while receiving data");
+
+        std::vector const res = resp.value();
+    }
 };
