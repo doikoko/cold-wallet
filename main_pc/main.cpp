@@ -1,6 +1,5 @@
 #include <iostream>
 #include <print>
-#include <memory>
 #include <asio/io_context.hpp>
 
 import serial;
@@ -23,18 +22,14 @@ int main() {
 
         Logger::instance().write(std::format("connected to {}", port_name), LogType::Info);
 
-        std::string address = serial.get_address_from_mcu();
-
-        BEP20 bep20(ctx, std::move(address));
-
-        InputManager manager(std::move(serial), std::move(bep20));
+        InputManager manager(ctx, port_name);
 
         manager.show_menu();
         manager.inf_loop_init();
     } catch (std::system_error const& e) {
         Logger::instance().write(
             std::format(
-                "an error occurred while connecting to the serial port. {}", std::move(port_name)
+                "an error occurred: {}", e.what()
                 ), LogType::Error
             );
 

@@ -50,8 +50,21 @@ export class Serial {
             asio::read(port, asio::buffer(&data, 1));
         }
     }
+protected:
+    [[nodiscard]] std::optional<std::string> get_address_from_mcu() {
+        if (send_command(command_get_addr) == Result::Err)
+            return std::nullopt;
+
+        std::optional const opt_addr = receive();
+        if (!opt_addr.has_value())
+            return std::nullopt;
+
+        std::string addr = opt_addr.value().data();
+
+        return addr;
+    }
 public:
-    Serial(asio::io_context& context, std::string port_name) :
+    Serial(asio::io_context& context, std::string const& port_name) :
         port(context)
     {
         std::error_code err;
@@ -174,19 +187,6 @@ public:
         return command;
     }
 
-    [[nodiscard]] std::optional<std::vector<char>> get_address_from_mcu() {
-        if (send_command(command_get_addr) == Result::Err)
-            return std::nullopt;
-
-        std::optional const opt_addr = receive();
-        if (!opt_addr)
-            return std::nullopt;
-
-        std::vector<char> const& addr = opt_addr.value();
-
-        return addr;
-    }
-
     [[nodiscard]] Result show_address_mcu() {
         if (send_command(command_show_addr) == Result::Err)
             return Result::Err;
@@ -201,4 +201,3 @@ public:
         return Result::Ok;
     }
 };
-
