@@ -1,9 +1,6 @@
 #include <span>
 #include <optional>
-
-#include <nlohmann/json.hpp>
-#include <TWData.h>
-#include <TWAnySigner.h>
+#include <string>
 
 #include "main.h"
 #include "stm32f4xx_hal_gpio.h"
@@ -15,7 +12,7 @@ import result;
 import commands;
 import keys;
 import button;
-import transaction;
+import signer;
 
 uint16_t find_device(I2C_HandleTypeDef& hi2c1) {
     for (uint16_t addr = 1; addr < 128; addr++) {
@@ -45,19 +42,19 @@ extern "C" void main_cpp(I2C_HandleTypeDef& hi2c1, UART_HandleTypeDef& huart1) {
             LoggerMCU::exception();
 
         switch (command.value()) {
-            case command_get_addr:
+            case command_get_addr: {
                 if (uart.send(keys.addr) == Result::Err)
                     LoggerMCU::exception();
-            case command_show_addr:
+            }
+            case command_show_addr: {
                 display.print("compare addresses");
                 while (!button.is_pressed()){}
                 display.print(keys.addr);
                 while (!button.is_pressed()){}
                 if (uart.send_command(command_finish) == Result::Err)
                     LoggerMCU::exception();
-
-                break;
-            case command_sign_transaction:
+            }
+            case command_sign_transaction: {
                 std::optional len_opt = uart.receive_len();
                 if (!len_opt.has_value()) {
                     display.print("receiving len error");
@@ -67,34 +64,31 @@ extern "C" void main_cpp(I2C_HandleTypeDef& hi2c1, UART_HandleTypeDef& huart1) {
                 uint32_t len = len_opt.value();
                 char buf[len] = {};
 
-                if (uart.receive(buf) == Result::Err) {
+                if (uart.receive(std::span(buf, len)) == Result::Err) {
                     display.print("receiving transaction error");
                     LoggerMCU::exception();
                 }
 
-                Transaction transaction(buf);
+                display.print("confirm transaction");
+                while (!button.is_pressed()){}
+                constexpr uint8_t chain_id = 0x38;
+                Signature signature = sign_transaction(
+                    reinterpret_cast<char*>(buf),
+                    keys.private_key,
+                    chain_id
+                );
 
-                nlohmann::json j = transaction.to_json();
-                std::string key = keys.private_key;
-                if (key[0] == '0' && key[1] == 'x') {
-                    key = key.substr(2);
-                }
-
-                TWData* key_tw = TWDataCreateWithHexString(key.c_str());
-
-                TWString* tw_trans = TWStringCreateWithUTF8Bytes(j.dump().c_str());
-                TWString* output = TWAnySignerSignJSON(tw_trans, key_tw, TWCoinTypeSmartChain);
-
-                Result const res = uart.send(std::span(TWStringUTF8Bytes(output), TWStringSize(output)));
-
-                TWStringDelete(tw_trans);
-                TWStringDelete(output);
-                TWDataDelete(key_tw);
+                Result const res = uart.send(std::span<const char>(
+                    reinterpret_cast<const char*>(signature.r.data()),
+                    signature.r.size()
+                ));
 
                 if (res == Result::Err)
                     LoggerMCU::exception();
-            default:
+            }
+            default: {
                 LoggerMCU::exception();
+            }
         }
     }
 }
