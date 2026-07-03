@@ -1,0 +1,12 @@
+/home/doio/Projects/cold-wallet/signer/target/thumbv7em-none-eabihf/release/deps/hmac-957d84a00b7ad621.d: /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/lib.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/block_api.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple_reset.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/utils.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/../README.md
+
+/home/doio/Projects/cold-wallet/signer/target/thumbv7em-none-eabihf/release/deps/libhmac-957d84a00b7ad621.rlib: /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/lib.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/block_api.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple_reset.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/utils.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/../README.md
+
+/home/doio/Projects/cold-wallet/signer/target/thumbv7em-none-eabihf/release/deps/libhmac-957d84a00b7ad621.rmeta: /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/lib.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/block_api.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple_reset.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/utils.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/../README.md
+
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/lib.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/block_api.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/simple_reset.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/utils.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/hmac-0.13.0/src/../README.md:

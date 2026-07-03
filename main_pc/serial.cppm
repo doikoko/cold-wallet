@@ -52,12 +52,16 @@ export class Serial {
     }
 protected:
     [[nodiscard]] std::optional<std::string> get_address_from_mcu() {
+        std::println("0");
         if (send_command(command_get_addr) == Result::Err)
             return std::nullopt;
 
+        std::println("1");
         std::optional const opt_addr = receive();
+        std::println("2");
         if (!opt_addr.has_value())
             return std::nullopt;
+        std::println("3");
 
         std::string addr = opt_addr.value().data();
 
@@ -101,7 +105,9 @@ public:
 
         uint8_t attempts = 0;
 
+        std::println("sync");
         sync();
+        std::println("syncend");
         do {
             asio::write(port, asio::buffer(len_msg, len_msg_size));
 
@@ -111,14 +117,18 @@ public:
         } while(check_res() != Result::Ok);
 
         attempts = 0;
+        std::println("syncweq");
 
         sync();
         do {
             asio::write(port, asio::buffer(data_msg, data_msg_size));
 
-            if (++attempts >= 3)
+            if (++attempts >= 3) {
+                std::println("!@J#OI$");
                 return Result::Err;
+            }
         } while (check_res() != Result::Ok);
+        std::println("syncasdc");
 
         return Result::Ok;
     }

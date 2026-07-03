@@ -40,9 +40,9 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     serial.cppm
     BEP20.cppm
     input_manager.cppm
+    transaction.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../utils/logger_pc.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../utils/commands.cppm
-    ${CMAKE_CURRENT_SOURCE_DIR}/../utils/transaction.cppm
     ${CMAKE_CURRENT_SOURCE_DIR}/../utils/result.cppm
 )
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE

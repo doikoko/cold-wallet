@@ -1,0 +1,20 @@
+[package]
+name = "signer"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+sha3 = { version = "0.12.0", default-features = false}
+k256 = { version = "0.14.0-rc.14", default-features = false, features = ["ecdsa"] }
+rlp = { version = "0.6.1", default-features = false }
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"
+debug = false
