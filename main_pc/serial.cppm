@@ -1,6 +1,6 @@
 module;
 
-#include <print>
+#include <iomanip>
 
 #include <asio/serial_port_base.hpp>
 #include <asio/serial_port.hpp>
@@ -29,15 +29,11 @@ export class Serial {
     [[nodiscard]] Result check_res() {
         uint8_t data = 0;
 
-        Result result;
-
         asio::read(port, asio::buffer(&data, 1));
-        if (data == command_ok)
-            result = Result::Ok;
-        else
-            result = Result::Err;
+        Result const result = data == command_ok ? Result::Ok : Result::Err;
 
         asio::write(port, asio::buffer(&command_sync_pc, 1));
+
         return result;
     }
 
@@ -52,20 +48,23 @@ export class Serial {
     }
 protected:
     [[nodiscard]] std::optional<std::string> get_address_from_mcu() {
-        std::println("0");
         if (send_command(command_get_addr) == Result::Err)
             return std::nullopt;
 
-        std::println("1");
         std::optional const opt_addr = receive();
-        std::println("2");
         if (!opt_addr.has_value())
             return std::nullopt;
-        std::println("3");
 
-        std::string addr = opt_addr.value().data();
+        std::vector<char> const& addr = opt_addr.value();
+        std::ostringstream oss;
 
-        return addr;
+        oss << "0x";
+        oss << std::hex << std::uppercase;
+
+        for (char const ch : addr)
+            oss << std::setw(2) << std::setfill('0') << static_cast<int>(static_cast<uint8_t>(ch));
+
+        return oss.str();
     }
 public:
     Serial(asio::io_context& context, std::string const& port_name) :
@@ -105,30 +104,21 @@ public:
 
         uint8_t attempts = 0;
 
-        std::println("sync");
         sync();
-        std::println("syncend");
         do {
             asio::write(port, asio::buffer(len_msg, len_msg_size));
-
             if (++attempts >= 3)
                 return Result::Err;
-
         } while(check_res() != Result::Ok);
 
         attempts = 0;
-        std::println("syncweq");
 
         sync();
         do {
             asio::write(port, asio::buffer(data_msg, data_msg_size));
-
-            if (++attempts >= 3) {
-                std::println("!@J#OI$");
+            if (++attempts >= 3)
                 return Result::Err;
-            }
         } while (check_res() != Result::Ok);
-        std::println("syncasdc");
 
         return Result::Ok;
     }
@@ -140,7 +130,6 @@ public:
         sync();
         while (true) {
             asio::read(port, asio::buffer(len_msg, len_msg_size));
-
             if (++attempts >= 3)
                 return std::nullopt;
             if (len_msg[0] == command_start_byte && len_msg[len_msg_size - 1] == command_end_byte) {
@@ -154,7 +143,7 @@ public:
         std::memcpy(&msg_size, len_msg + 1, 4);
 
         std::vector<char> msg;
-        msg.reserve(msg_size);
+        msg.resize(msg_size);
 
         uint8_t buf[msg_size + 2];
         attempts = 0;
@@ -191,15 +180,17 @@ public:
 
         char const command = res.value()[0];
 
-        if (command < 0x47 || command > 0x4F)
+        if (command < 0x46 || command > 0x4F)
             return std::nullopt;
 
         return command;
     }
 
     [[nodiscard]] Result show_address_mcu() {
-        if (send_command(command_show_addr) == Result::Err)
+        auto a = send_command(command_show_addr);
+        if (a == Result::Err) {
             return Result::Err;
+        }
 
         std::optional const command = receive_command();
         if (!command.has_value())

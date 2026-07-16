@@ -11,7 +11,7 @@ import result;
 int main() {
     std::println("input serial port\ne.g. '/dev/ttyUSB0");
 
-    Logger::instance("main", "../../logs.log");
+    Logger::instance("main", "../logs.log");
 
     std::string port_name;
     std::getline(std::cin, port_name);
@@ -26,13 +26,11 @@ int main() {
 
         manager.show_menu();
         manager.inf_loop_init();
-    } catch (std::system_error const& e) {
+    } catch (const std::exception& e) {
         Logger::instance().write(
-            std::format(
-                "an error occurred: {}", e.what()
-                ), LogType::Error
-            );
-
+            std::format("an error occurred: {}", e.what()),
+            LogType::Error
+        );
         return 1;
     }
 

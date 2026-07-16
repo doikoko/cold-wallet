@@ -72,7 +72,7 @@ export class BEP20 : public Serial {
         size_t content_length = 0;
         size_t pos = response.find("Content-Length: ");
         if (pos != std::string::npos) {
-            pos += 16; // "Content-Length: " length
+            pos += 16;
             size_t const end = response.find("\r\n", pos);
             content_length = std::stoul(response.substr(pos, end - pos));
         }
@@ -159,8 +159,8 @@ export class BEP20 : public Serial {
     }
 
     uint64_t eth_estimateGas(
-        std::string const& to_address,
-        std::optional<std::string> const& data,
+        std::array<uint8_t, 20> const& to_address,
+        std::optional<std::array<uint8_t, 178>> const& data,
         std::string const& wei_amount
     ) {
         json request;
@@ -173,8 +173,13 @@ export class BEP20 : public Serial {
         })});
         request["id"] = 1;
 
-        if (data.has_value())
-            request["params"]["data"] = data;
+        if (data.has_value()) {
+            std::string data_hex = "0x";
+            for (uint8_t byte : data.value()) {
+                data_hex += std::format("{:02x}", byte);
+            }
+            request["params"][0]["data"] = data_hex;
+        }
 
         json response = post_request(request);
         return response["result"].get<uint64_t>();
@@ -255,29 +260,46 @@ public:
         uint64_t nonce = eth_getTransactionCount();
         std::array<uint64_t, 2> gas_price = eth_gasPrice();
 
-        std::array<uint8_t, 20> to_address;
-        std::optional<std::string> data = std::nullopt;
-        std::string value = "0x0";
+        std::array<uint8_t, 20> to_address{};
+        std::optional<std::array<uint8_t, 178>> data = std::nullopt;
+        std::array<uint64_t, 2> value = {0, 0};
 
         if (token == SupportedTokens::BNB) {
-            to_address = to_addr;
+            std::string clean_to = to_addr;
+            if (clean_to.starts_with("0x")) {
+                clean_to = clean_to.substr(2);
+            }
+            for (size_t i = 0; i < 20; ++i) {
+                to_address[i] = static_cast<uint8_t>(
+                    std::stoi(clean_to.substr(i * 2, 2), nullptr, 16)
+                );
+            }
         } else if (token == SupportedTokens::USDC) {
-            constexpr std::string_view USDC_CONTRACT = "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d";
-            to_address = USDC_CONTRACT;
+            std::string contract = "8ac76a51cc950d9822d68b83fe1ad97b32cd580d";
+            for (size_t i = 0; i < 20; ++i) {
+                to_address[i] = static_cast<uint8_t>(
+                    std::stoi(contract.substr(i * 2, 2), nullptr, 16)
+                );
+            }
 
-            constexpr std::string_view signature = "0xa9059cbb";
+            constexpr std::string_view signature = "a9059cbb";
 
             std::string clean_to = to_addr;
             if (clean_to.starts_with("0x")) {
                 clean_to = clean_to.substr(2);
             }
 
-            data = signature +
-               std::string(64 - clean_to.length(), '0') + clean_to +
-               std::string(
-                   64 - wei_amount.length() - 2, // without 0x
-                   '0'
-                ) + wei_amount.substr(2);
+            std::string data_str(signature);
+            data_str += std::string(64 - clean_to.length(), '0') + clean_to;
+            data_str += std::string(64 - (wei_amount.length() - 2), '0') + wei_amount.substr(2);
+
+            std::array<uint8_t, 178> data_bytes{};
+            for (size_t i = 0; i < data_str.length() / 2 && i < 178; ++i) {
+                data_bytes[i] = static_cast<uint8_t>(
+                    std::stoi(data_str.substr(i * 2, 2), nullptr, 16)
+                );
+            }
+            data = data_bytes;
         }
 
         uint64_t const estimated_gas = eth_estimateGas(to_address, data, wei_amount);
@@ -296,15 +318,15 @@ public:
             if (send_command(command_sign_transaction) == Result::Err)
                 throw std::runtime_error("the signing transaction failed while sending the command");
 
-            if (send(std::span(tr.data(), tr.length())) ==
-                Result::Err)
+            Result const res = send(std::span<const char>(reinterpret_cast<const char*>(tr.data()), tr.size()));
+            if (res == Result::Err)
                 throw std::runtime_error("the signing transaction failed while sending data");
 
             std::optional<std::vector<char>> const resp = receive();
             if (!resp.has_value())
                 throw std::runtime_error("the signing transaction failed while receiving data");
 
-            std::vector const hash = resp.value();
+            std::vector<char> const& hash = resp.value();
 
             eth_sendRawTransaction(hash);
         }, transaction_arr);
