@@ -4,7 +4,10 @@ wallet-core
 *.pdf
 cmake-build*
 *.json
-/logs.log
+logs.log
 test*
 *.sh
 .cache
+/t
+/t.txt
+/t.cpp

@@ -63,9 +63,8 @@ int main() {
         }
         int const res = std::system(command.data());
         std::remove(tmp_file.data());
-        if (res) {
+        if (res)
            throw std::exception();
-        }
     } catch (const std::exception& e) {
         std::println(stderr, "error: {}", e.what());
         return 1;

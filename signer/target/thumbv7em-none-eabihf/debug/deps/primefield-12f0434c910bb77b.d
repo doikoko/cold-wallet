@@ -1,0 +1,12 @@
+/home/doio/Projects/cold-wallet/signer/target/thumbv7em-none-eabihf/debug/deps/primefield-12f0434c910bb77b.d: /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/lib.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/dev.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/error.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/macros.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/macros/fiat.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/monty.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/traits.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/../README.md
+
+/home/doio/Projects/cold-wallet/signer/target/thumbv7em-none-eabihf/debug/deps/libprimefield-12f0434c910bb77b.rmeta: /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/lib.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/dev.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/error.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/macros.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/macros/fiat.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/monty.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/traits.rs /home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/../README.md
+
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/lib.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/dev.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/error.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/macros.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/macros/fiat.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/monty.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/traits.rs:
+/home/doio/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/primefield-0.14.0/src/../README.md:

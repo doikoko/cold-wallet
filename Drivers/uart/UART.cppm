@@ -133,7 +133,7 @@ public:
 
             if (++attempts >= 3)
                 return Result::Err;
-            if (buf[0] == command_start_byte && buf[msg_size - 1] == command_end_byte) {
+            if (msg[0] == command_start_byte && msg[msg_size - 1] == command_end_byte) {
                 send_res(Result::Ok);
                 break;
             }
@@ -162,9 +162,8 @@ public:
     }
 
     [[nodiscard]] Result send_command(char const command) const {
-        if (command < 0x47 || command > 0x4F)
-            return Result::Err;
-
+        if (command < 0x46 || command > 0x4F)
+            LoggerMCU::exception();
         return send(std::span(&command, 1));
     }
 };

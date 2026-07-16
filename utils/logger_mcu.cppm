@@ -8,17 +8,20 @@ module;
 
 export module logger_mcu;
 
-export class LoggerMCU {
-    static constexpr inline void led_enable() {
+export class LED {
+public:
+    static constexpr void enable() {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET);
     }
 
-    static constexpr inline void led_disable() {
+    static constexpr void disable() {
         HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
     }
+};
+export class LoggerMCU : LED {
 public:
     static void exception() {
-        led_enable();
+        enable();
 
         while (true) {
             asm("wfi");

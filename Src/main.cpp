@@ -1,8 +1,9 @@
 #include <span>
 #include <optional>
-#include <string>
+#include <functional>
 
 #include "main.h"
+
 #include "stm32f4xx_hal_gpio.h"
 
 import display;
@@ -30,10 +31,10 @@ extern "C" void main_cpp(I2C_HandleTypeDef& hi2c1, UART_HandleTypeDef& huart1) {
     if (addr == 0xFF'FF)
         LoggerMCU::exception();
 
-    Display display(hi2c1, addr, 2);
     UART const uart(huart1);
     Keys const keys;
-    Button const button(GPIOA, 0);
+    Button const button;
+    Display display(hi2c1, addr, 2, 16, button);
 
     while (true) {
         auto command = uart.receive_command();
@@ -45,19 +46,21 @@ extern "C" void main_cpp(I2C_HandleTypeDef& hi2c1, UART_HandleTypeDef& huart1) {
             case command_get_addr: {
                 if (uart.send(keys.addr) == Result::Err)
                     LoggerMCU::exception();
+
+                break;
             }
             case command_show_addr: {
-                display.print("compare addresses");
-                while (!button.is_pressed()){}
-                display.print(keys.addr);
-                while (!button.is_pressed()){}
+                display.print("compare\naddresses\0");
+                display.print(keys.addr_str);
                 if (uart.send_command(command_finish) == Result::Err)
                     LoggerMCU::exception();
+
+                break;
             }
             case command_sign_transaction: {
                 std::optional len_opt = uart.receive_len();
                 if (!len_opt.has_value()) {
-                    display.print("receiving len error");
+                    display.print("recv err\0");
                     LoggerMCU::exception();
                 }
 
@@ -65,12 +68,12 @@ extern "C" void main_cpp(I2C_HandleTypeDef& hi2c1, UART_HandleTypeDef& huart1) {
                 char buf[len] = {};
 
                 if (uart.receive(std::span(buf, len)) == Result::Err) {
-                    display.print("receiving transaction error");
+                    display.print("receiving transaction error\0");
                     LoggerMCU::exception();
                 }
 
-                display.print("confirm transaction");
-                while (!button.is_pressed()){}
+                display.print("confirm transaction\0");
+                button.wait_pressed();
                 constexpr uint8_t chain_id = 0x38;
                 Signature signature = sign_transaction(
                     reinterpret_cast<char*>(buf),
@@ -85,9 +88,13 @@ extern "C" void main_cpp(I2C_HandleTypeDef& hi2c1, UART_HandleTypeDef& huart1) {
 
                 if (res == Result::Err)
                     LoggerMCU::exception();
+
+                break;
             }
             default: {
                 LoggerMCU::exception();
+
+                break;
             }
         }
     }

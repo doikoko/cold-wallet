@@ -8,6 +8,7 @@ export module display;
 
 import HAL_Delay_us;
 import logger_mcu;
+import button;
 
 namespace lcd_commands {
     constexpr uint8_t CLEAR_DISPLAY = 0x01;
@@ -71,7 +72,10 @@ export class Display {
     uint8_t display_mode;
     uint8_t num_lines;
     uint8_t rows;
+    uint8_t columns;
     uint8_t back_light_val;
+
+    Button button;
 
     void send_byte(uint8_t const value, uint8_t const mode) const {
         uint8_t const high_nib = value & 0xF0;
@@ -94,11 +98,25 @@ export class Display {
 
         if (stat != HAL_OK) LoggerMCU::exception();
     }
+
+    void print_raw(std::span<const char> const str) {
+        for (char const ch : str) {
+            if (ch == '\0') return;
+            if (ch == '\n') {
+                set_cursor(0, 1);
+                continue;
+            }
+            write(ch);
+        }
+    }
+
 public:
     Display(
         I2C_HandleTypeDef& _hi2c1,
         uint8_t addr,
-        uint8_t rows
+        uint8_t rows,
+        uint8_t columns,
+        Button button
     ) :
         hi2c1(_hi2c1),
         addr(addr << 1),
@@ -110,9 +128,13 @@ public:
         display_mode(0),
         num_lines(0),
         rows(rows),
-        back_light_val(lcd_blacklight_control::BLACKLIGHT)
+        columns(columns),
+        back_light_val(lcd_blacklight_control::BLACKLIGHT),
+
+        button(button)
     {
         if (rows > 1) {
+            display_function &= ~lcd_function_set::LCD_1_LINE;
             display_function |= lcd_function_set::LCD_2_LINE;
         }
         num_lines = rows;
@@ -268,9 +290,24 @@ public:
     }
 
     void print(std::span<const char> const str) {
-        for (char const ch : str) {
-            if (ch == '\0') return;
-            write(ch);
+        uint8_t size = str.size();
+        uint8_t chars_per_page = rows * columns;
+
+        uint8_t pages = (size + chars_per_page - 1) / chars_per_page;
+        for (uint8_t page = 0; page < pages; page++) {
+            uint8_t offset = page * chars_per_page;
+            uint8_t remaining = size - offset;
+            uint8_t chunk = remaining < chars_per_page ? remaining : chars_per_page;
+
+            print_raw(str.subspan(offset, chunk));
+
+            LED::enable();
+            button.wait_pressed();
+            HAL_Delay(500);
+            LED::disable();
+
+            clear();
+            set_cursor(0, 0);
         }
     }
 };
